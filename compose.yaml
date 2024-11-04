@@ -1,0 +1,84 @@
+services:
+  tei_fhir:
+    image: hapiproject/hapi:latest
+    container_name: tei-fhir
+    deploy:
+      resources:
+        limits:
+          memory: 10g 
+    configs:
+      - source: hapi
+        target: /app/config/application.yaml
+    ports:
+      - "8081:8081"
+    environment:
+      - JAVA_OPTS=-Xms1024m -Xmx8192m -XX:MaxMetaspaceSize=1024m
+    depends_on:
+      - postgres
+      - elasticsearch
+
+  postgres:
+    image: postgres:15
+    container_name: hapi-postgres-tei
+    restart: always
+    environment:
+      POSTGRES_DB: "hapi"
+      POSTGRES_USER: "admin"
+      POSTGRES_PASSWORD: "admin"
+      PGTZ: "America/Santiago"
+      TZ: "America/Santiago"
+    ports:
+      - "5432:5432"
+    volumes:
+      - hapi-fhir-postgres:/var/lib/postgresql/data
+  
+  mirthconnect:
+    image: nextgenhealthcare/connect:latest
+    container_name: mirthconnect
+    ports:
+      - "80:80"
+      - "8080:8080"
+      - "8443:8443"
+      - "7472:7472"
+    environment:
+      - JAVA_OPTS=-Duser.timezone=America/Santiago
+    volumes:
+      - mirth-data:/var/mirth
+    depends_on:
+      - mariadb
+      - tei_fhir
+
+  mariadb:
+    image: mariadb:10.5
+    container_name: mariadb-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mirthdb
+      MYSQL_USER: mirthuser
+      MYSQL_PASSWORD: mirthpassword
+    # ports:
+    #   - "3306:3306"
+    volumes:
+      - mariadb-data:/var/lib/mysql
+  
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+      - ELASTIC_PASSWORD=hapifhirr4
+    # ports:
+    #   - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+
+volumes:
+  hapi-fhir-postgres:
+  mirth-data:
+  mariadb-data:
+  esdata:
+
+configs:
+  hapi:
+    file: ./hapi.application.yaml
