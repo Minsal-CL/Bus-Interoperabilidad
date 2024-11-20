@@ -131,12 +131,10 @@
 	"variable": [
 		{
 			"key": "Consumerkey",
-			"value": "CAYwuUj1wznvmFti0JkRCSzegVG9FNRJdVOq22zMR8rpiGpL",
 			"type": "string"
 		},
 		{
 			"key": "ConsumerSecret",
-			"value": "jAZqVtPj5vnBvmlNNdcruEZPVyXJQwMgtek2nFDszlIVGb01SylAUP1UOBMsLo5w",
 			"type": "string"
 		}
 	]
